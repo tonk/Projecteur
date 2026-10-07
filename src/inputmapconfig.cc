@@ -219,6 +219,12 @@ void InputMapConfigModel::setItemActionType(const QModelIndex& idx, Action::Type
   case Action::Type::ToggleSpotlight:
     item.action = std::make_shared<ToggleSpotlightAction>();
     break;
+  case Action::Type::LaserPointer:
+    item.action = std::make_shared<LaserPointerAction>();
+    break;
+  case Action::Type::ToggleZoom:
+    item.action = std::make_shared<ToggleZoomAction>();
+    break;
   case Action::Type::ScrollHorizontal:
     item.action = GlobalActions::scrollHorizontal();
     break;

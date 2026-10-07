@@ -285,6 +285,16 @@ int Spotlight::connectDevices()
           {
             m_settings->setOverlayDisabled(!m_settings->overlayDisabled());
           }
+          else if (action->type() == Action::Type::LaserPointer)
+          {
+            toggleLaserPointer();
+          }
+          else if (action->type() == Action::Type::ToggleZoom)
+          {
+            // Zoom and laser pointer exclude each other.
+            setLaserPointerActive(false);
+            m_settings->setZoomEnabled(!m_settings->zoomEnabled());
+          }
           else if (action->type() == Action::Type::ScrollHorizontal || action->type() == Action::Type::ScrollVertical)
           {
             if (!m_virtualMouseDevice) { return; }
@@ -450,6 +460,56 @@ void Spotlight::onEventDataAvailable(int fd, SubEventConnection& connection)
 }
 
 // -------------------------------------------------------------------------------------------------
+void Spotlight::toggleLaserPointer()
+{
+  setLaserPointerActive(!m_laserPointerRestore);
+}
+
+// -------------------------------------------------------------------------------------------------
+void Spotlight::setLaserPointerActive(bool active)
+{
+  if (active == static_cast<bool>(m_laserPointerRestore)) { return; }
+
+  if (!active)
+  {
+    auto restore = std::move(m_laserPointerRestore);
+    m_laserPointerRestore = nullptr;
+    restore();
+    return;
+  }
+
+  // Remember the current look so it can be restored when the laser pointer is switched off.
+  m_laserPointerRestore = [s=m_settings,
+    showShade=m_settings->showSpotShade(), showBorder=m_settings->showBorder(),
+    showDot=m_settings->showCenterDot(), dotSize=m_settings->dotSize(),
+    dotColor=m_settings->dotColor(), dotOpacity=m_settings->dotOpacity(),
+    cursor=m_settings->cursor(), zoom=m_settings->zoomEnabled(),
+    overlayDisabled=m_settings->overlayDisabled()]()
+  {
+    s->setShowSpotShade(showShade);
+    s->setShowBorder(showBorder);
+    s->setShowCenterDot(showDot);
+    s->setDotSize(dotSize);
+    s->setDotColor(dotColor);
+    s->setDotOpacity(dotOpacity);
+    s->setCursor(cursor);
+    s->setZoomEnabled(zoom);
+    s->setOverlayDisabled(overlayDisabled);
+  };
+
+  // A small, solid red dot without dimming the rest of the screen.
+  m_settings->setZoomEnabled(false);
+  m_settings->setShowSpotShade(false);
+  m_settings->setShowBorder(false);
+  m_settings->setShowCenterDot(true);
+  m_settings->setDotSize(16);
+  m_settings->setDotColor(QColor(Qt::red));
+  m_settings->setDotOpacity(1.0);
+  m_settings->setCursor(Qt::BlankCursor);
+  m_settings->setOverlayDisabled(false);
+}
+
+// -------------------------------------------------------------------------------------------------
 void Spotlight::registerForNotifications(SubHidppConnection* connection)
 {
   using namespace HIDPP;
@@ -470,12 +530,20 @@ void Spotlight::registerForNotifications(SubHidppConnection* connection)
       // Byte 5 and 7 indicate pressed buttons
       // Back and next can be pressed at the same time
 
+      logDebug(hid) << tr("Button notification: %1 %2 %3 %4 %5 %6 %7 %8")
+                       .arg(msg[0], 2, 16, QChar('0')).arg(msg[1], 2, 16, QChar('0'))
+                       .arg(msg[2], 2, 16, QChar('0')).arg(msg[3], 2, 16, QChar('0'))
+                       .arg(msg[4], 2, 16, QChar('0')).arg(msg[5], 2, 16, QChar('0'))
+                       .arg(msg[6], 2, 16, QChar('0')).arg(msg[7], 2, 16, QChar('0'));
+
       constexpr uint8_t ButtonNext = 0xda;
       constexpr uint8_t ButtonBack = 0xdc;
       constexpr uint8_t ButtonAction = 0xfb;
+      constexpr uint8_t ButtonActionHold = 0xfc;
       const auto isNextPressed = msg[5] == ButtonNext || msg[7] == ButtonNext;
       const auto isBackPressed = msg[5] == ButtonBack || msg[7] == ButtonBack;
       const auto isActionPressed = msg[5] == ButtonAction || msg[7] == ButtonAction;
+      const auto isActionHoldPressed = msg[5] == ButtonActionHold || msg[7] == ButtonActionHold;
 
       if (!m_holdButtonStatus->nextPressed() && isNextPressed)
       {
@@ -501,7 +569,16 @@ void Spotlight::registerForNotifications(SubHidppConnection* connection)
         }
       }
 
+      if (!m_actionHoldPressed && isActionHoldPressed)
+      {
+        const auto& actionHold = SpecialKeys::eventSequenceInfo(SpecialKeys::Key::ActionHold);
+        for (const auto& ke: actionHold.keyEventSeq) {
+          connection->inputMapper()->addEvents(ke);
+        }
+      }
+
       m_actionButtonPressed = isActionPressed;
+      m_actionHoldPressed = isActionHoldPressed;
       m_holdButtonStatus->setButtonsPressed(isNextPressed, isBackPressed);
     }), 0 /* function 0 */);
 

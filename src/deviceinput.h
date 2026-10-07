@@ -87,6 +87,7 @@ namespace SpecialKeys
     NextHold = 0x0e10,
     BackHold = 0x0e11,
     ActionButton = 0x0e12,
+    ActionHold = 0x0e13,
     NextHoldMove = 0x0ff0,
     BackHoldMove = 0x0ff1,
   };
@@ -171,6 +172,8 @@ struct Action
     KeySequence = 1,
     CyclePresets = 2,
     ToggleSpotlight = 3,
+    LaserPointer = 4,
+    ToggleZoom = 5,
     ScrollHorizontal = 11,
     ScrollVertical = 12,
     VolumeControl = 13,
@@ -220,6 +223,30 @@ struct ToggleSpotlightAction : public Action
   QDataStream& load(QDataStream& s) override { return s >> placeholder; }
   bool empty() const override { return false; }
   bool operator==(const ToggleSpotlightAction&) const { return true; }
+  bool placeholder = false;
+};
+
+// -------------------------------------------------------------------------------------------------
+/// Toggles a laser pointer mode: A small, solid dot without dimming the screen.
+struct LaserPointerAction : public Action
+{
+  Type type() const override { return Type::LaserPointer; }
+  QDataStream& save(QDataStream& s) const override { return s << placeholder; }
+  QDataStream& load(QDataStream& s) override { return s >> placeholder; }
+  bool empty() const override { return false; }
+  bool operator==(const LaserPointerAction&) const { return true; }
+  bool placeholder = false;
+};
+
+// -------------------------------------------------------------------------------------------------
+/// Toggles zoom (magnifier) mode.
+struct ToggleZoomAction : public Action
+{
+  Type type() const override { return Type::ToggleZoom; }
+  QDataStream& save(QDataStream& s) const override { return s << placeholder; }
+  QDataStream& load(QDataStream& s) override { return s >> placeholder; }
+  bool empty() const override { return false; }
+  bool operator==(const ToggleZoomAction&) const { return true; }
   bool placeholder = false;
 };
 

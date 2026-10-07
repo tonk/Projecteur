@@ -47,6 +47,8 @@ const QString& lookup(const DeviceId& dId, const DeviceInputEvent& die)
        SpecialKeys::eventSequenceInfo(SpecialKeys::Key::BackHold).name },
     { eHash(EV_KEY, to_integral(SpecialKeys::Key::ActionButton)),
        SpecialKeys::eventSequenceInfo(SpecialKeys::Key::ActionButton).name },
+    { eHash(EV_KEY, to_integral(SpecialKeys::Key::ActionHold)),
+       SpecialKeys::eventSequenceInfo(SpecialKeys::Key::ActionHold).name },
   };
 
   static const KeyNameMap avattoH100Mapping = {

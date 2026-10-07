@@ -266,6 +266,28 @@ void ProjecteurApplication::setupSpotlight()
     }
   });
 
+  // Zoom uses a screenshot that is only taken when the overlay gets shown. When zoom is switched
+  // on while the overlay is already visible (e.g. by an input mapper action), hide the overlay
+  // briefly, so it is not part of the screenshot, grab the screens and show it again.
+  connect(m_settings, &Settings::zoomEnabledChanged, this, [this](bool enabled)
+  {
+    if (!enabled || !m_overlayVisible) { return; }
+
+    for (const auto window : m_overlayWindows) { window->hide(); }
+    QTimer::singleShot(150, this, [this]()
+    {
+      if (!m_overlayVisible || !m_settings->zoomEnabled()) { return; }
+      for (const auto window : m_overlayWindows)
+      {
+        if (window->screen()) {
+          window->setProperty("desktopPixmap", m_linuxDesktop->grabScreen(window->screen()));
+        }
+        window->showFullScreen();
+        window->raise();
+      }
+    });
+  });
+
   connect(m_spotlight, &Spotlight::spotActiveChanged, this, [this](bool active){
     if (!active && m_dialog->isVisible()) {
       m_dialog->raise();

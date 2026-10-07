@@ -5,6 +5,7 @@
 #include <QObject>
 
 #include <map>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -77,6 +78,12 @@ private:
   QTimer* m_holdMoveEventTimer = nullptr;
   bool m_spotActive = false;
   bool m_actionButtonPressed = false;
+  bool m_actionHoldPressed = false;
+
+  void toggleLaserPointer();
+  void setLaserPointerActive(bool active);
+  /// Restores the settings that were changed when the laser pointer mode was activated.
+  std::function<void()> m_laserPointerRestore;
   std::shared_ptr<VirtualDevice> m_virtualMouseDevice;
   std::shared_ptr<VirtualDevice> m_virtualKeyDevice;
   Settings* m_settings = nullptr;

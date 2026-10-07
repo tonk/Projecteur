@@ -177,6 +177,12 @@ QDataStream& operator>>(QDataStream& s, MappedAction& mia)
   case Action::Type::ToggleSpotlight:
     mia.action = std::make_shared<ToggleSpotlightAction>();
     return mia.action->load(s);
+  case Action::Type::LaserPointer:
+    mia.action = std::make_shared<LaserPointerAction>();
+    return mia.action->load(s);
+  case Action::Type::ToggleZoom:
+    mia.action = std::make_shared<ToggleZoomAction>();
+    return mia.action->load(s);
   case Action::Type::ScrollHorizontal:
     mia.action = std::make_shared<ScrollHorizontalAction>();
     return mia.action->load(s);
@@ -207,6 +213,12 @@ bool MappedAction::operator==(const MappedAction& o) const
   case Action::Type::ToggleSpotlight:
     return (*static_cast<ToggleSpotlightAction*>(action.get()))
            == (*static_cast<ToggleSpotlightAction*>(o.action.get()));
+  case Action::Type::LaserPointer:
+    return (*static_cast<LaserPointerAction*>(action.get()))
+           == (*static_cast<LaserPointerAction*>(o.action.get()));
+  case Action::Type::ToggleZoom:
+    return (*static_cast<ToggleZoomAction*>(action.get()))
+           == (*static_cast<ToggleZoomAction*>(o.action.get()));
   case Action::Type::ScrollHorizontal:
     return (*static_cast<ScrollHorizontalAction*>(action.get()))
            == (*static_cast<ScrollHorizontalAction*>(o.action.get()));
@@ -559,6 +571,8 @@ const char* toString(Action::Type at, bool withClass)
     ENUM_CASE_STRINGIFY3(Type, KeySequence, withClass);
     ENUM_CASE_STRINGIFY3(Type, CyclePresets, withClass);
     ENUM_CASE_STRINGIFY3(Type, ToggleSpotlight, withClass);
+    ENUM_CASE_STRINGIFY3(Type, LaserPointer, withClass);
+    ENUM_CASE_STRINGIFY3(Type, ToggleZoom, withClass);
     ENUM_CASE_STRINGIFY3(Type, ScrollHorizontal, withClass);
     ENUM_CASE_STRINGIFY3(Type, ScrollVertical, withClass);
     ENUM_CASE_STRINGIFY3(Type, VolumeControl, withClass);
@@ -971,6 +985,8 @@ const std::map<Key, SpecialKeyEventSeqInfo>&  keyEventSequenceMap()
       KeyEventSequence{{{EV_KEY, to_integral(Key::BackHold), 1}}}}},
     {Key::ActionButton, {InputMapper::tr("Action Button"),
       KeyEventSequence{{{EV_KEY, to_integral(Key::ActionButton), 1}}}}},
+    {Key::ActionHold, {InputMapper::tr("Action Hold"),
+      KeyEventSequence{{{EV_KEY, to_integral(Key::ActionHold), 1}}}}},
     {Key::NextHoldMove, {InputMapper::tr("Next Hold Move"),
       makeSpecialKeyEventSequence(to_integral(Key::NextHoldMove)) }},
     {Key::BackHoldMove, {InputMapper::tr("Back Hold Move"),

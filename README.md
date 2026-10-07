@@ -157,6 +157,12 @@ _Action_ button to record it. The recorded entry will be shown as _Action Button
 The _Highlight_ button of the Spotlight 2 is a virtual left mouse button and is
 forwarded to the system like a regular mouse click.
 
+The Action button can additionally be recorded as _Action Hold_ (long press), so a tap and
+a hold can be mapped to different actions. Two actions are useful for presenting:
+_Laser Pointer_ toggles a small solid red dot without dimming the screen, and _Toggle Zoom_
+switches the zoom (magnifier) on and off. E.g. map _Action Button_ to _Laser Pointer_ and
+_Action Hold_ to _Toggle Zoom_.
+
 ## Download
 
 The latest binary packages for some Linux distributions are available for download on cloudsmith.

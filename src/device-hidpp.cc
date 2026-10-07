@@ -719,6 +719,17 @@ void SubHidppConnection::initFeatures(
         resultMap->emplace(FeatureCode::ReprogramControlsV4, res);
       }
     });
+
+    // Also divert the hold variant of the action button (control id 0x00fc), so that tap and
+    // hold can be mapped to different actions. Devices without this control just fail the
+    // request, which is harmless.
+    batch.emplace(RequestBatchItem {
+      Message(Message::Type::Long, m_deviceIndex, contrFeatureIndex, 3,
+              Message::Data{0x00, 0xfc, 0x03}),
+      [resultMap](MsgResult res, Message&& /* msg */) {
+        resultMap->emplace(FeatureCode::ReprogramControlsV4, res);
+      }
+    });
   }
 
   if (const auto psFeatureIndex = m_featureSet.featureIndex(FeatureCode::PointerSpeed))
